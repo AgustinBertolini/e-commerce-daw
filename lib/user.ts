@@ -1,6 +1,3 @@
-// Simulación de perfil de usuario para fines de demostración
-// En una aplicación real, esto se conectaría a un backend o base de datos
-
 import type { UserProfile } from "@/types"
 import { getCurrentUser } from "./auth"
 

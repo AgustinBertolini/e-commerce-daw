@@ -1,5 +1,3 @@
-// Definición de tipos para la aplicación
-
 export interface Product {
   id: string
   name: string
@@ -10,6 +8,7 @@ export interface Product {
   gender?: string
   image?: string
   userId: string
+  createdAt: string
 }
 
 export interface CartItem {

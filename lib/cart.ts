@@ -1,6 +1,3 @@
-// Simulación de carrito para fines de demostración
-// En una aplicación real, esto se conectaría a un backend o base de datos
-
 import type { CartItem } from "@/types"
 import { getProductById } from "./products"
 

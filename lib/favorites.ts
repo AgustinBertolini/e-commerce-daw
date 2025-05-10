@@ -1,6 +1,3 @@
-// Simulación de favoritos para fines de demostración
-// En una aplicación real, esto se conectaría a un backend o base de datos
-
 import type { Product } from "@/types"
 import { getProductById } from "./products"
 
@@ -51,5 +48,8 @@ export async function removeFavorite(productId: string): Promise<void> {
 }
 
 export async function isFavorite(productId: string): Promise<boolean> {
+  // Simular retraso de red
+  await new Promise((resolve) => setTimeout(resolve, 100))
+
   return Promise.resolve(favoriteIds.includes(productId))
 }

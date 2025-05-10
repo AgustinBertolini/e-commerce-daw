@@ -1,6 +1,3 @@
-// Simulación de procesamiento de pagos para fines de demostración
-// En una aplicación real, esto se conectaría a un API de pagos como MercadoPago
-
 import type { CartItem } from "@/types"
 import { clearCart } from "./cart"
 import { savePurchase } from "./purchases"
