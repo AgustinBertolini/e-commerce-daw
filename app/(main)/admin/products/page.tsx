@@ -1,56 +1,105 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, Plus, Search } from "lucide-react"
-import { getUserProducts, deleteProduct } from "@/lib/products"
-import type { Product } from "@/types"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { MoreHorizontal, Plus, Search } from "lucide-react";
+import api from "@/lib/api";
+
+// Defino el tipo para el producto según el payload del endpoint
+interface ProductApi {
+  _id: string;
+  categoria: string;
+  usuario: string;
+  genero: string;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  stock: number;
+  fechaActualizacion: string;
+  image?: string;
+}
+
+interface CategoriaApi {
+  _id: string;
+  nombre: string;
+}
+interface GeneroApi {
+  _id: string;
+  nombre: string;
+}
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [products, setProducts] = useState<ProductApi[]>([]);
+  const [categorias, setCategorias] = useState<CategoriaApi[]>([]);
+  const [generos, setGeneros] = useState<GeneroApi[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const userProducts = await getUserProducts()
-        setProducts(userProducts)
+        const [apiProducts, apiCategorias, apiGeneros] = await Promise.all([
+          api.productos.getAll(),
+          api.categorias.getAll(),
+          api.generos.getAll(),
+        ]);
+        setProducts(apiProducts);
+        setCategorias(apiCategorias);
+        setGeneros(apiGeneros);
       } catch (error) {
-        console.error("Error loading products:", error)
+        console.error("Error loading products/categorias/generos:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-
-    loadProducts()
-  }, [])
+    };
+    loadProducts();
+  }, []);
 
   const handleDeleteProduct = async (productId: string) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
       try {
-        await deleteProduct(productId)
-        setProducts(products.filter((product) => product.id !== productId))
+        await api.productos.delete(productId);
+        setProducts(products.filter((product) => product._id !== productId));
       } catch (error) {
-        console.error("Error deleting product:", error)
+        console.error("Error deleting product:", error);
       }
     }
-  }
+  };
 
   const filteredProducts = products.filter(
     (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      (product.nombre?.toLowerCase() || "").includes(
+        searchTerm.toLowerCase()
+      ) ||
+      (product.categoria?.toLowerCase() || "").includes(
+        searchTerm.toLowerCase()
+      )
+  );
 
   if (loading) {
-    return <div className="container mx-auto py-12 text-center">Cargando productos...</div>
+    return (
+      <div className="container mx-auto py-12 text-center">
+        Cargando productos...
+      </div>
+    );
   }
 
   return (
@@ -85,6 +134,7 @@ export default function AdminProductsPage() {
                 <TableHead className="w-[80px]">Imagen</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Categoría</TableHead>
+                <TableHead>Género</TableHead>
                 <TableHead className="text-right">Precio</TableHead>
                 <TableHead>Stock</TableHead>
                 <TableHead>Estado</TableHead>
@@ -94,25 +144,41 @@ export default function AdminProductsPage() {
             <TableBody>
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
+                  <TableRow key={product._id}>
                     <TableCell>
                       <Image
-                        src={product.image || "/placeholder.svg?height=40&width=40"}
-                        alt={product.name}
+                        src={
+                          product.image || "/placeholder.svg?height=40&width=40"
+                        }
+                        alt={product.nombre || "N/A"}
                         width={40}
                         height={40}
                         className="rounded object-cover"
                       />
                     </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.category}</TableCell>
-                    <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
-                    <TableCell>{product.stock}</TableCell>
+                    <TableCell className="font-medium">
+                      {product.nombre || "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {categorias.find((c) => c._id === product.categoria)
+                        ?.nombre || "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {generos.find((g) => g._id === product.genero)?.nombre ||
+                        "N/A"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      ${product.precio?.toFixed(2) ?? "N/A"}
+                    </TableCell>
+                    <TableCell>{product.stock ?? "N/A"}</TableCell>
                     <TableCell>
                       {product.stock > 0 ? (
                         <Badge className="bg-green-500">Disponible</Badge>
                       ) : (
-                        <Badge variant="outline" className="text-red-500 border-red-500">
+                        <Badge
+                          variant="outline"
+                          className="text-red-500 border-red-500"
+                        >
                           Agotado
                         </Badge>
                       )}
@@ -126,10 +192,13 @@ export default function AdminProductsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <Link href={`/admin/products/edit/${product.id}`}>
+                          <Link href={`/admin/products/edit/${product._id}`}>
                             <DropdownMenuItem>Editar</DropdownMenuItem>
                           </Link>
-                          <DropdownMenuItem className="text-red-500" onClick={() => handleDeleteProduct(product.id)}>
+                          <DropdownMenuItem
+                            className="text-red-500"
+                            onClick={() => handleDeleteProduct(product._id)}
+                          >
                             Eliminar
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -149,5 +218,5 @@ export default function AdminProductsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

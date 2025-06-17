@@ -1,21 +1,48 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getProductById, updateProduct } from "@/lib/products"
-import type { Product } from "@/types"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import api from "@/lib/api";
+// ...existing code...
+// Defino el tipo para el producto según el payload del endpoint
+interface ProductApi {
+  _id: string;
+  categoria: string;
+  usuario: string;
+  genero: string;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  stock: number;
+  fechaActualizacion: string;
+  image?: string;
+}
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const [product, setProduct] = useState<Product | null>(null)
+export default function EditProductPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const router = useRouter();
+  const [product, setProduct] = useState<ProductApi | null>(null);
+  const [categorias, setCategorias] = useState<
+    { _id: string; nombre: string }[]
+  >([]);
+  const [generos, setGeneros] = useState<{ _id: string; nombre: string }[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -24,106 +51,124 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     category: "",
     gender: "",
     image: "",
-  })
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const loadProduct = async () => {
       try {
-        const productData = await getProductById(params.id)
-        if (productData) {
-          setProduct(productData)
-          setFormData({
-            name: productData.name,
-            description: productData.description,
-            price: productData.price.toString(),
-            stock: productData.stock.toString(),
-            category: productData.category,
-            gender: productData.gender || "",
-            image: productData.image || "",
-          })
-        }
+        const [productData, apiCategorias, apiGeneros] = await Promise.all([
+          api.productos.getById(params.id),
+          api.categorias.getAll(),
+          api.generos.getAll(),
+        ]);
+        setProduct(productData);
+        setCategorias(apiCategorias);
+        setGeneros(apiGeneros);
+        setFormData({
+          name: productData.nombre || "N/A",
+          description: productData.descripcion || "N/A",
+          price: productData.precio?.toString() || "N/A",
+          stock: productData.stock?.toString() || "N/A",
+          category: productData.categoria || "",
+          gender: productData.genero || "",
+          image: productData.image || "",
+        });
       } catch (error) {
-        console.error("Error loading product:", error)
-        setError("Error al cargar el producto")
+        console.error("Error loading product:", error);
+        setError("Error al cargar el producto");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
+    loadProduct();
+  }, [params.id]);
 
-    loadProduct()
-  }, [params.id])
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
-    })
-  }
+    });
+  };
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData({
       ...formData,
       [name]: value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
 
     // Validaciones
-    if (!formData.name || !formData.description || !formData.price || !formData.stock || !formData.category) {
-      setError("Por favor completa todos los campos obligatorios")
-      return
+    if (
+      !formData.name ||
+      !formData.description ||
+      !formData.price ||
+      !formData.stock ||
+      !formData.category
+    ) {
+      setError("Por favor completa todos los campos obligatorios");
+      return;
     }
 
-    const price = Number.parseFloat(formData.price)
-    const stock = Number.parseInt(formData.stock)
+    const price = Number.parseFloat(formData.price);
+    const stock = Number.parseInt(formData.stock);
 
     if (isNaN(price) || price <= 0) {
-      setError("El precio debe ser un número mayor a 0")
-      return
+      setError("El precio debe ser un número mayor a 0");
+      return;
     }
 
     if (isNaN(stock) || stock < 0) {
-      setError("El stock debe ser un número mayor o igual a 0")
-      return
+      setError("El stock debe ser un número mayor o igual a 0");
+      return;
     }
 
     try {
-      setSaving(true)
+      setSaving(true);
       const productData = {
         ...formData,
         price,
         stock,
-        id: params.id,
-      }
+      };
 
-      await updateProduct(productData)
-      router.push("/admin/products")
+      await api.productos.update(params.id, productData);
+      router.push("/admin/products");
     } catch (err) {
-      setError("Error al actualizar el producto. Por favor intenta nuevamente.")
-      console.error(err)
+      setError(
+        "Error al actualizar el producto. Por favor intenta nuevamente."
+      );
+      console.error(err);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   if (loading) {
-    return <div className="container mx-auto py-12 text-center">Cargando producto...</div>
+    return (
+      <div className="container mx-auto py-12 text-center">
+        Cargando producto...
+      </div>
+    );
   }
 
   if (!product) {
     return (
       <div className="container mx-auto py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Producto no encontrado</h1>
-        <Button onClick={() => router.push("/admin/products")}>Volver a Productos</Button>
+        <Button onClick={() => router.push("/admin/products")}>
+          Volver a Productos
+        </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -141,22 +186,30 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre del Producto *</Label>
-              <Input id="name" name="name" value={formData.name} onChange={handleInputChange} required />
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="category">Categoría *</Label>
-              <Select value={formData.category} onValueChange={(value) => handleSelectChange("category", value)}>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => handleSelectChange("category", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="electronics">Electrónica</SelectItem>
-                  <SelectItem value="clothing">Ropa</SelectItem>
-                  <SelectItem value="home">Hogar</SelectItem>
-                  <SelectItem value="books">Libros</SelectItem>
-                  <SelectItem value="sports">Deportes</SelectItem>
-                  <SelectItem value="toys">Juguetes</SelectItem>
+                  {categorias.map((cat) => (
+                    <SelectItem key={cat._id} value={cat._id}>
+                      {cat.nombre}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -190,14 +243,19 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
             <div className="space-y-2">
               <Label htmlFor="gender">Género</Label>
-              <Select value={formData.gender} onValueChange={(value) => handleSelectChange("gender", value)}>
+              <Select
+                value={formData.gender}
+                onValueChange={(value) => handleSelectChange("gender", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un género (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="male">Hombre</SelectItem>
-                  <SelectItem value="female">Mujer</SelectItem>
-                  <SelectItem value="unisex">Unisex</SelectItem>
+                  {generos.map((gen) => (
+                    <SelectItem key={gen._id} value={gen._id}>
+                      {gen.nombre}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -227,7 +285,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => router.push("/admin/products")}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/admin/products")}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={saving}>
@@ -237,5 +299,5 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         </form>
       </div>
     </div>
-  )
+  );
 }

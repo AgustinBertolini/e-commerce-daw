@@ -7,28 +7,23 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Search, User, ChevronDown } from "lucide-react";
-import { useAuth } from "@/components/auth-provider";
+import Cookies from "js-cookie";
+import { logoutUser } from "@/lib/auth";
 
 export default function Header() {
   const router = useRouter();
-  const { checkSession } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showHeader, setShowHeader] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Verificar sesión periódicamente
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     if (!checkSession()) {
-  //       router.push("/login?expired=true")
-  //     }
-  //   }, 60000) // Verificar cada minuto
+  useEffect(() => {
+    // Chequear si la cookie 'token' existe y tiene valor
+    const token = Cookies.get("token");
+    setShowHeader(!!token);
+  }, []);
 
-  //   return () => clearInterval(interval)
-  // }, [router, checkSession])
-
-  // Cerrar el dropdown cuando se hace clic fuera de él
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -62,6 +57,15 @@ export default function Header() {
       handleSearch(e);
     }
   };
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await logoutUser();
+    setShowHeader(false);
+    router.push("/login");
+  };
+
+  if (!showHeader) return null;
 
   return (
     <header className="bg-yellow-400 p-4 sticky top-0 z-50">
@@ -137,12 +141,13 @@ export default function Header() {
                     >
                       Mis Productos
                     </Link>
-                    <Link
-                      href="/logout"
+                    <a
+                      href="#"
+                      onClick={handleLogout}
                       className="block px-4 py-2 hover:bg-gray-100"
                     >
                       Cerrar Sesión
-                    </Link>
+                    </a>
                   </div>
                 </div>
               )}
