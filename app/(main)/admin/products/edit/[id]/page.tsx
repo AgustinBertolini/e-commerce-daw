@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { use } from "react";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -17,13 +18,15 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import api from "@/lib/api";
-// ...existing code...
+
 // Defino el tipo para el producto según el payload del endpoint
 interface ProductApi {
   _id: string;
-  categoria: string;
-  usuario: string;
-  genero: string;
+  categoria: string | { _id: string; nombre: string };
+  usuario:
+    | string
+    | { _id: string; nombre: string; apellido: string; email: string };
+  genero?: string | { _id: string; nombre: string };
   nombre: string;
   descripcion: string;
   precio: number;
@@ -35,8 +38,9 @@ interface ProductApi {
 export default function EditProductPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const router = useRouter();
   const [product, setProduct] = useState<ProductApi | null>(null);
   const [categorias, setCategorias] = useState<
@@ -44,38 +48,32 @@ export default function EditProductPage({
   >([]);
   const [generos, setGeneros] = useState<{ _id: string; nombre: string }[]>([]);
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
+    nombre: "",
+    descripcion: "",
+    precio: "",
     stock: "",
-    category: "",
-    gender: "",
+    categoria: "",
+    genero: "",
     image: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [formInitialized, setFormInitialized] = useState(false);
 
   useEffect(() => {
+    // Carga producto, categorías y géneros
     const loadProduct = async () => {
       try {
         const [productData, apiCategorias, apiGeneros] = await Promise.all([
-          api.productos.getById(params.id),
+          api.productos.getById(id),
           api.categorias.getAll(),
           api.generos.getAll(),
         ]);
+        console.log("Product data:", productData);
         setProduct(productData);
         setCategorias(apiCategorias);
         setGeneros(apiGeneros);
-        setFormData({
-          name: productData.nombre || "N/A",
-          description: productData.descripcion || "N/A",
-          price: productData.precio?.toString() || "N/A",
-          stock: productData.stock?.toString() || "N/A",
-          category: productData.categoria || "",
-          gender: productData.genero || "",
-          image: productData.image || "",
-        });
       } catch (error) {
         console.error("Error loading product:", error);
         setError("Error al cargar el producto");
@@ -84,7 +82,30 @@ export default function EditProductPage({
       }
     };
     loadProduct();
-  }, [params.id]);
+  }, [id]);
+
+  useEffect(() => {
+    // Inicializa el formData solo una vez cuando product esté disponible
+    if (product && !formInitialized) {
+      console.log(product?.nombre);
+      setFormData({
+        nombre: product.nombre || "",
+        descripcion: product.descripcion || "",
+        precio: product.precio?.toString() || "",
+        stock: product.stock?.toString() || "",
+        categoria:
+          typeof product.categoria === "object"
+            ? product.categoria._id
+            : product.categoria || "",
+        genero:
+          product.genero && typeof product.genero === "object"
+            ? product.genero._id
+            : product.genero || "",
+        image: product.image || "",
+      });
+      setFormInitialized(true);
+    }
+  }, [product, formInitialized]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -109,20 +130,20 @@ export default function EditProductPage({
 
     // Validaciones
     if (
-      !formData.name ||
-      !formData.description ||
-      !formData.price ||
+      !formData.nombre ||
+      !formData.descripcion ||
+      !formData.precio ||
       !formData.stock ||
-      !formData.category
+      !formData.categoria
     ) {
       setError("Por favor completa todos los campos obligatorios");
       return;
     }
 
-    const price = Number.parseFloat(formData.price);
+    const precio = Number.parseFloat(formData.precio);
     const stock = Number.parseInt(formData.stock);
 
-    if (isNaN(price) || price <= 0) {
+    if (isNaN(precio) || precio <= 0) {
       setError("El precio debe ser un número mayor a 0");
       return;
     }
@@ -136,11 +157,10 @@ export default function EditProductPage({
       setSaving(true);
       const productData = {
         ...formData,
-        price,
+        precio,
         stock,
       };
-
-      await api.productos.update(params.id, productData);
+      await api.productos.update(id, productData);
       router.push("/admin/products");
     } catch (err) {
       setError(
@@ -171,6 +191,14 @@ export default function EditProductPage({
     );
   }
 
+  if (!formInitialized) {
+    return (
+      <div className="container mx-auto py-12 text-center">
+        Cargando formulario...
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Editar Producto</h1>
@@ -185,21 +213,23 @@ export default function EditProductPage({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre del Producto *</Label>
+              <Label htmlFor="nombre">Nombre del Producto *</Label>
               <Input
-                id="name"
-                name="name"
-                value={formData.name}
+                id="nombre"
+                name="nombre"
+                value={formData.nombre}
                 onChange={handleInputChange}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Categoría *</Label>
+              <Label htmlFor="categoria">Categoría *</Label>
               <Select
-                value={formData.category}
-                onValueChange={(value) => handleSelectChange("category", value)}
+                value={formData.categoria}
+                onValueChange={(value) =>
+                  handleSelectChange("categoria", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona una categoría" />
@@ -215,14 +245,14 @@ export default function EditProductPage({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Precio *</Label>
+              <Label htmlFor="precio">Precio *</Label>
               <Input
-                id="price"
-                name="price"
+                id="precio"
+                name="precio"
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.price}
+                value={formData.precio}
                 onChange={handleInputChange}
                 required
               />
@@ -242,10 +272,10 @@ export default function EditProductPage({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="gender">Género</Label>
+              <Label htmlFor="genero">Género</Label>
               <Select
-                value={formData.gender}
-                onValueChange={(value) => handleSelectChange("gender", value)}
+                value={formData.genero}
+                onValueChange={(value) => handleSelectChange("genero", value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un género (opcional)" />
@@ -272,11 +302,11 @@ export default function EditProductPage({
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="description">Descripción *</Label>
+              <Label htmlFor="descripcion">Descripción *</Label>
               <Textarea
-                id="description"
-                name="description"
-                value={formData.description}
+                id="descripcion"
+                name="descripcion"
+                value={formData.descripcion}
                 onChange={handleInputChange}
                 rows={5}
                 required

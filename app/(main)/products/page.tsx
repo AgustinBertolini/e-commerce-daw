@@ -17,13 +17,21 @@ export default function ProductsPage() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const products = await getAllProducts();
+        const productsRaw = await getAllProducts();
+
+        // Mapear los campos para asegurar que tengan los nombres correctos
+        const products = productsRaw.map((product: any) => ({
+          ...product,
+          category: product.category ?? product.categoria,
+          gender: product.gender ?? product.genero,
+        }));
+
         setAllProducts(products);
         setFilteredProducts(products);
 
         // Determinar el precio máximo para el filtro
         const highestPrice = Math.ceil(
-          Math.max(...products.map((product) => product.price))
+          Math.max(...products.map((product) => product.precio))
         );
         setMaxPrice(highestPrice);
       } catch (error) {
@@ -44,15 +52,15 @@ export default function ProductsPage() {
           // Filtrar por categoría
           if (
             filters.categories.length > 0 &&
-            !filters.categories.includes(product.category)
+            !filters.categories.includes(product.category._id)
           ) {
             return false;
           }
 
           // Filtrar por precio
           if (
-            product.price < filters.priceRange[0] ||
-            product.price > filters.priceRange[1]
+            product.precio < filters.priceRange[0] ||
+            product.precio > filters.priceRange[1]
           ) {
             return false;
           }
@@ -61,7 +69,7 @@ export default function ProductsPage() {
           if (
             filters.genders.length > 0 &&
             product.gender &&
-            !filters.genders.includes(product.gender)
+            !filters.genders.includes(product.gender._id)
           ) {
             return false;
           }
@@ -107,7 +115,7 @@ export default function ProductsPage() {
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product._id} product={product} />
               ))}
             </div>
           ) : (

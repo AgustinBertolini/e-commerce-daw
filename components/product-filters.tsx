@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import api from "@/lib/api";
 
 export interface ProductFilters {
   categories: string[];
@@ -41,23 +42,32 @@ export default function ProductFilters({
   // Usar useRef para evitar el primer efecto al montar el componente
   const isInitialMount = useRef(true);
 
-  // Categorías disponibles
-  const categories = [
-    { id: "electronics", label: "Electrónica" },
-    { id: "clothing", label: "Ropa" },
-    { id: "home", label: "Hogar" },
-    { id: "books", label: "Libros" },
-    { id: "sports", label: "Deportes" },
-    { id: "toys", label: "Juguetes" },
-  ];
+  const [categories, setCategories] = useState<{ id: string; label: string }[]>(
+    []
+  );
+  const [genders, setGenders] = useState<{ id: string; label: string }[]>([]);
 
-  // Géneros disponibles
-  const genders = [
-    { id: "male", label: "Hombre" },
-    { id: "female", label: "Mujer" },
-    { id: "unisex", label: "Unisex" },
-  ];
-
+  // Cargar categorías y géneros desde la API
+  useEffect(() => {
+    const fetchFilters = async () => {
+      const cats = await api.categorias.getAll();
+      setCategories(
+        cats.map((cat: any) => ({
+          id: cat._id || cat.id,
+          label: cat.nombre || cat.label || cat.name,
+        }))
+      );
+      const gens = await api.generos.getAll();
+      console.log(gens);
+      setGenders(
+        gens.map((gen: any) => ({
+          id: gen._id || gen.id,
+          label: gen.nombre || gen.label || gen.name,
+        }))
+      );
+    };
+    fetchFilters();
+  }, []);
   // Actualizar el rango de precios cuando cambia maxPrice
   useEffect(() => {
     setFilters((prev) => ({
@@ -136,7 +146,7 @@ export default function ProductFilters({
 
       <Accordion
         type="multiple"
-        defaultValue={["category", "price", "gender", "availability"]}
+        defaultValue={["category", "precio", "gender", "availability"]}
       >
         <AccordionItem value="category">
           <AccordionTrigger>Categorías</AccordionTrigger>
@@ -158,7 +168,7 @@ export default function ProductFilters({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="price">
+        <AccordionItem value="precio">
           <AccordionTrigger>Precio</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-4">

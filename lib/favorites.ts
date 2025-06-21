@@ -1,55 +1,27 @@
-import type { Product } from "@/types"
-import { getProductById } from "./products"
+import api from "@/lib/api";
+import Cookies from "js-cookie";
 
-// Favoritos de ejemplo
-let favoriteIds: string[] = ["2", "4", "7"]
-
-export async function getFavorites(): Promise<Product[]> {
-  const favorites: Product[] = []
-
-  for (const id of favoriteIds) {
-    const product = await getProductById(id)
-    if (product) {
-      favorites.push(product)
-    }
-  }
-
-  // Simular retraso de red
-  await new Promise((resolve) => setTimeout(resolve, 400))
-
-  return Promise.resolve(favorites)
+export async function getFavorites() {
+  const userId = Cookies.get("userId");
+  if (!userId) throw new Error("Usuario no autenticado");
+  // Trae todos los favoritos del usuario desde la API
+  const favoritos = await api.favoritos.getAll();
+  // Filtra por usuario actual (si el endpoint no lo hace ya)
+  return favoritos;
 }
 
-export async function addFavorite(productId: string): Promise<void> {
-  // Verificar si el producto existe
-  const product = await getProductById(productId)
-  if (!product) {
-    throw new Error("Producto no encontrado")
-  }
-
-  // Verificar si ya está en favoritos
-  if (!favoriteIds.includes(productId)) {
-    favoriteIds.push(productId)
-  }
-
-  // Simular retraso de red
-  await new Promise((resolve) => setTimeout(resolve, 300))
-
-  return Promise.resolve()
+export async function addFavorite(productId: string) {
+  const userId = Cookies.get("userId");
+  if (!userId) throw new Error("Usuario no autenticado");
+  return api.favoritos.create({ producto: productId, usuario: userId });
 }
 
-export async function removeFavorite(productId: string): Promise<void> {
-  favoriteIds = favoriteIds.filter((id) => id !== productId)
-
-  // Simular retraso de red
-  await new Promise((resolve) => setTimeout(resolve, 200))
-
-  return Promise.resolve()
+export async function removeFavorite(favoriteId: string) {
+  return api.favoritos.delete(favoriteId);
 }
 
-export async function isFavorite(productId: string): Promise<boolean> {
-  // Simular retraso de red
-  await new Promise((resolve) => setTimeout(resolve, 100))
+export async function isFavorite(productId: string) {
+  const favoritos = await getFavorites();
 
-  return Promise.resolve(favoriteIds.includes(productId))
+  return favoritos.some((fav: any) => fav.producto._id === productId);
 }

@@ -87,6 +87,14 @@ const api = {
     post: (data: any) =>
       apiAxios.post("/api/refresh-token", data).then((r) => r.data),
   },
+  register: {
+    post: (data: {
+      email: string;
+      password: string;
+      nombre: string;
+      apellido: string;
+    }) => apiAxios.post("/api/register", data).then((r) => r.data),
+  },
 };
 
 export default api;

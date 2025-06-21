@@ -1,39 +1,31 @@
-import type { UserProfile } from "@/types"
-import { getCurrentUser } from "./auth"
+import type { UserProfile } from "@/types";
+import api from "@/lib/api";
+import { getCurrentUserId } from "./auth";
+import Cookies from "js-cookie";
 
-export async function getUserProfile(): Promise<UserProfile> {
-  const user = await getCurrentUser()
-
-  if (!user) {
-    throw new Error("Usuario no autenticado")
+export async function getUserProfile(): Promise<any> {
+  const userId = Cookies.get("userId");
+  if (!userId) {
+    throw new Error("Usuario no autenticado");
   }
-
-  // Simular retraso de red
-  await new Promise((resolve) => setTimeout(resolve, 400))
-
-  return Promise.resolve(user)
+  return getUserById(userId);
 }
 
-export async function updateUserProfile(profileData: Partial<UserProfile>): Promise<UserProfile> {
-  const user = await getCurrentUser()
+export async function updateUserProfile(
+  profileData: Partial<UserProfile>
+): Promise<UserProfile> {
+  const user = await getCurrentUserId();
 
   if (!user) {
-    throw new Error("Usuario no autenticado")
+    throw new Error("Usuario no autenticado");
   }
 
-  // Actualizar campos
-  const updatedUser: UserProfile = {
-    ...user,
-    name: profileData.name !== undefined ? profileData.name : user.name,
-    lastName: profileData.lastName !== undefined ? profileData.lastName : user.lastName,
-    phone: profileData.phone !== undefined ? profileData.phone : user.phone,
-    // No permitir cambiar email o password aquí
-  }
+  // Enviar los datos modificados del usuario a api.usuarios.update.
+  const updated = await api.usuarios.update(user, profileData);
 
-  // En una aplicación real, aquí se enviaría al backend
+  return updated;
+}
 
-  // Simular retraso de red
-  await new Promise((resolve) => setTimeout(resolve, 600))
-
-  return Promise.resolve(updatedUser)
+export async function getUserById(userId: string) {
+  return api.usuarios.getById(userId);
 }

@@ -31,17 +31,22 @@ export default function ProductCard({
   const [addedToCart, setAddedToCart] = useState(false);
   const [isFav, setIsFav] = useState(initialIsFavorite || false);
 
-  // Verificar si el producto está en favoritos al cargar
+  // Verificar si el producto está en favoritos al cargar SOLO en cliente
   useEffect(() => {
+    let ignore = false;
     const checkFavorite = async () => {
       if (initialIsFavorite === undefined) {
-        const result = await isFavorite(product.id);
-        setIsFav(result);
+        const result = await isFavorite(product._id);
+        if (!ignore) setIsFav(result);
       }
     };
-
-    checkFavorite();
-  }, [product.id, initialIsFavorite]);
+    if (typeof window !== "undefined") {
+      checkFavorite();
+    }
+    return () => {
+      ignore = true;
+    };
+  }, [initialIsFavorite, product._id]);
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(e.target.value);
@@ -67,7 +72,7 @@ export default function ProductCard({
 
     try {
       setIsAddingToCart(true);
-      await addToCart(product.id, quantity);
+      await addToCart(product._id, quantity);
       setAddedToCart(true);
       setTimeout(() => {
         setAddedToCart(false);
@@ -83,11 +88,11 @@ export default function ProductCard({
   const handleToggleFavorite = async () => {
     try {
       if (isFav) {
-        await removeFavorite(product.id);
+        await removeFavorite(product._id);
         setIsFav(false);
         if (onRemoveFavorite) onRemoveFavorite();
       } else {
-        await addFavorite(product.id);
+        await addFavorite(product._id);
         setIsFav(true);
       }
     } catch (error) {
@@ -97,7 +102,7 @@ export default function ProductCard({
 
   return (
     <Card className="overflow-hidden">
-      <Link href={`/products/${product.id}`}>
+      <Link href={`/products/${product._id}`}>
         <div className="relative aspect-square  overflow-hidden">
           <Image
             src={product.image || "/placeholder.svg?height=300&width=300"}
@@ -116,13 +121,13 @@ export default function ProductCard({
       </Link>
 
       <CardContent className="p-4 mt-4">
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/products/${product._id}`}>
           <h3 className="font-medium line-clamp-1 hover:text-yellow-600">
             {product.name}
           </h3>
         </Link>
-        <p className="text-sm text-gray-500">{product.category}</p>
-        <p className="font-bold text-lg mt-1">${product.price.toFixed(2)}</p>
+        <p className="text-sm text-gray-500">{product.category.nombre}</p>
+        <p className="font-bold text-lg mt-1">${product.precio.toFixed(2)}</p>
         {product.stock > 0 ? (
           <p className="text-sm text-gray-500">
             Stock disponible:{" "}
@@ -198,14 +203,17 @@ export default function ProductCard({
               Agregar
             </Button>
             <Button
-              variant="outline"
-              size="icon"
-              className={isFav ? "text-red-500" : ""}
+              variant={isFav ? "destructive" : "ghost"}
+              aria-label={isFav ? "Quitar de favoritos" : "Agregar a favoritos"}
               onClick={handleToggleFavorite}
+              disabled={isFav === undefined}
+              className="absolute top-2 right-2 z-10"
             >
               <Heart
-                className="h-4 w-4"
-                fill={isFav ? "currentColor" : "none"}
+                className={
+                  isFav ? "fill-red-500 text-red-500" : "text-gray-400"
+                }
+                fill={isFav ? "#ef4444" : "none"}
               />
             </Button>
           </div>

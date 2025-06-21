@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
@@ -11,8 +11,9 @@ import AddToCartForm from "@/components/add-to-cart-form";
 export default function ProductDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isFav, setIsFav] = useState(false);
@@ -20,12 +21,12 @@ export default function ProductDetailPage({
   useEffect(() => {
     const loadProduct = async () => {
       try {
-        const productData = await getProductById(params.id);
+        const productData = await getProductById(id);
         setProduct(productData);
 
         // Verificar si está en favoritos
         if (productData) {
-          const favStatus = await isFavorite(productData.id);
+          const favStatus = await isFavorite(productData._id);
           setIsFav(favStatus);
         }
       } catch (error) {
@@ -36,17 +37,17 @@ export default function ProductDetailPage({
     };
 
     loadProduct();
-  }, [params.id]);
+  }, [id]);
 
   const handleToggleFavorite = async () => {
     if (!product) return;
 
     try {
       if (isFav) {
-        await removeFavorite(product.id);
+        await removeFavorite(product._id);
         setIsFav(false);
       } else {
-        await addFavorite(product.id);
+        await addFavorite(product._id);
         setIsFav(true);
       }
     } catch (error) {
@@ -86,7 +87,7 @@ export default function ProductDetailPage({
         <div className="space-y-4">
           <h1 className="text-3xl font-bold">{product.name}</h1>
           <p className="text-2xl font-bold text-yellow-600">
-            ${product.price.toFixed(2)}
+            ${product.precio.toFixed(2)}
           </p>
 
           <div className="border-t border-b py-4 my-4">

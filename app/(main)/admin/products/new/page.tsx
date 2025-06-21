@@ -1,86 +1,128 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { createProduct } from "@/lib/products"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { createProduct } from "@/lib/products";
+import api from "@/lib/api";
 
 export default function NewProductPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    price: "",
+    precio: "",
     stock: "",
     category: "",
     gender: "",
     image: "",
-  })
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; label: string }[]>(
+    []
+  );
+  const [genders, setGenders] = useState<{ id: string; label: string }[]>([]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  useEffect(() => {
+    const fetchFilters = async () => {
+      const cats = await api.categorias.getAll();
+      setCategories(
+        cats.map((cat: any) => ({
+          id: cat._id || cat.id,
+          label: cat.nombre || cat.label || cat.name,
+        }))
+      );
+      const gens = await api.generos.getAll();
+      setGenders(
+        gens.map((gen: any) => ({
+          id: gen._id || gen.id,
+          label: gen.nombre || gen.label || gen.name,
+        }))
+      );
+    };
+    fetchFilters();
+  }, []);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
-    })
-  }
+    });
+  };
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData({
       ...formData,
       [name]: value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
 
     // Validaciones
-    if (!formData.name || !formData.description || !formData.price || !formData.stock || !formData.category) {
-      setError("Por favor completa todos los campos obligatorios")
-      return
+    if (
+      !formData.name ||
+      !formData.description ||
+      !formData.precio ||
+      !formData.stock ||
+      !formData.category
+    ) {
+      setError("Por favor completa todos los campos obligatorios");
+      return;
     }
 
-    const price = Number.parseFloat(formData.price)
-    const stock = Number.parseInt(formData.stock)
+    const precio = Number.parseFloat(formData.precio);
+    const stock = Number.parseInt(formData.stock);
 
-    if (isNaN(price) || price <= 0) {
-      setError("El precio debe ser un número mayor a 0")
-      return
+    if (isNaN(precio) || precio <= 0) {
+      setError("El precio debe ser un número mayor a 0");
+      return;
     }
 
     if (isNaN(stock) || stock < 0) {
-      setError("El stock debe ser un número mayor o igual a 0")
-      return
+      setError("El stock debe ser un número mayor o igual a 0");
+      return;
     }
 
     try {
-      setLoading(true)
+      setLoading(true);
       const productData = {
-        ...formData,
-        price,
+        nombre: formData.name,
+        descripcion: formData.description,
+        precio,
         stock,
-      }
-
-      await createProduct(productData)
-      router.push("/admin/products")
+        categoria: formData.category,
+        genero: formData.gender,
+        imagen: formData.image,
+      };
+      await createProduct(productData);
+      router.push("/admin/products");
     } catch (err) {
-      setError("Error al crear el producto. Por favor intenta nuevamente.")
-      console.error(err)
+      setError("Error al crear el producto. Por favor intenta nuevamente.");
+      console.error(err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto py-8">
@@ -97,35 +139,43 @@ export default function NewProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre del Producto *</Label>
-              <Input id="name" name="name" value={formData.name} onChange={handleInputChange} required />
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="category">Categoría *</Label>
-              <Select value={formData.category} onValueChange={(value) => handleSelectChange("category", value)}>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => handleSelectChange("category", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="electronics">Electrónica</SelectItem>
-                  <SelectItem value="clothing">Ropa</SelectItem>
-                  <SelectItem value="home">Hogar</SelectItem>
-                  <SelectItem value="books">Libros</SelectItem>
-                  <SelectItem value="sports">Deportes</SelectItem>
-                  <SelectItem value="toys">Juguetes</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Precio *</Label>
+              <Label htmlFor="precio">Precio *</Label>
               <Input
-                id="price"
-                name="price"
+                id="precio"
+                name="precio"
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.price}
+                value={formData.precio}
                 onChange={handleInputChange}
                 required
               />
@@ -146,14 +196,19 @@ export default function NewProductPage() {
 
             <div className="space-y-2">
               <Label htmlFor="gender">Género</Label>
-              <Select value={formData.gender} onValueChange={(value) => handleSelectChange("gender", value)}>
+              <Select
+                value={formData.gender}
+                onValueChange={(value) => handleSelectChange("gender", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un género (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="male">Hombre</SelectItem>
-                  <SelectItem value="female">Mujer</SelectItem>
-                  <SelectItem value="unisex">Unisex</SelectItem>
+                  {genders.map((gen) => (
+                    <SelectItem key={gen.id} value={gen.id}>
+                      {gen.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -183,7 +238,11 @@ export default function NewProductPage() {
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => router.push("/admin/products")}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/admin/products")}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
@@ -193,5 +252,5 @@ export default function NewProductPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

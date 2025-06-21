@@ -1,71 +1,82 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getCart } from "@/lib/cart"
-import type { CartItem } from "@/types"
-import { processPayment } from "@/lib/payment"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getCart } from "@/lib/cart";
+import type { CartItem } from "@/types";
+import { processPayment } from "@/lib/payment";
 
 export default function CheckoutPage() {
-  const router = useRouter()
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [paymentMethod, setPaymentMethod] = useState("mercadopago")
-  const [processingPayment, setProcessingPayment] = useState(false)
-  const [error, setError] = useState("")
+  const router = useRouter();
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState("mercadopago");
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const loadCart = async () => {
       try {
-        const cart = await getCart()
-        setCartItems(cart)
+        const cart = await getCart();
+        setCartItems(cart);
       } catch (error) {
-        console.error("Error loading cart:", error)
+        console.error("Error loading cart:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadCart()
-  }, [])
+    loadCart();
+  }, []);
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
-  }
+    return cartItems.reduce(
+      (total, item) => total + item.precio * item.quantity,
+      0
+    );
+  };
 
   const handlePayment = async () => {
     try {
-      setError("")
-      setProcessingPayment(true)
-      const result = await processPayment(cartItems, paymentMethod)
+      setError("");
+      setProcessingPayment(true);
+      const result = await processPayment(cartItems, paymentMethod);
 
       // Redirigir a la página de confirmación de compra
-      router.push(`/checkout/success?orderId=${result.orderId}`)
+      router.push(`/checkout/success?orderId=${result.orderId}`);
     } catch (error) {
-      console.error("Error processing payment:", error)
-      setError("Hubo un error al procesar el pago. Por favor intenta nuevamente.")
+      console.error("Error processing payment:", error);
+      setError(
+        "Hubo un error al procesar el pago. Por favor intenta nuevamente."
+      );
     } finally {
-      setProcessingPayment(false)
+      setProcessingPayment(false);
     }
-  }
+  };
 
   if (loading) {
-    return <div className="container mx-auto py-12 text-center">Cargando...</div>
+    return (
+      <div className="container mx-auto py-12 text-center">Cargando...</div>
+    );
   }
 
   if (cartItems.length === 0) {
     return (
       <div className="container mx-auto py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">No hay productos en tu carrito</h1>
-        <Button onClick={() => (window.location.href = "/products")}>Ver productos</Button>
+        <h1 className="text-2xl font-bold mb-4">
+          No hay productos en tu carrito
+        </h1>
+        <Button onClick={() => (window.location.href = "/products")}>
+          Ver productos
+        </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -138,7 +149,10 @@ export default function CheckoutPage() {
 
             <div className="max-h-60 overflow-y-auto mb-4">
               {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center gap-2 py-2 border-b">
+                <div
+                  key={item.id}
+                  className="flex items-center gap-2 py-2 border-b"
+                >
                   <div className="w-12 h-12 flex-shrink-0">
                     <Image
                       src={item.image || "/placeholder.svg?height=48&width=48"}
@@ -150,10 +164,14 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex-grow">
                     <p className="text-sm font-medium">{item.name}</p>
-                    <p className="text-xs text-gray-500">Cantidad: {item.quantity}</p>
+                    <p className="text-xs text-gray-500">
+                      Cantidad: {item.quantity}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium">
+                      ${(item.precio * item.quantity).toFixed(2)}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -174,12 +192,16 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <Button className="w-full" onClick={handlePayment} disabled={processingPayment}>
+            <Button
+              className="w-full"
+              onClick={handlePayment}
+              disabled={processingPayment}
+            >
               {processingPayment ? "Procesando..." : "Pagar con MercadoPago"}
             </Button>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

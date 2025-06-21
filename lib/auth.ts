@@ -36,3 +36,24 @@ export async function logoutUser() {
 export function getCurrentUserId(): string | null {
   return Cookies.get("userId") || null;
 }
+
+export async function registerUser(
+  email: string,
+  password: string,
+  firstName: string,
+  lastName: string
+) {
+  const data = await api.register.post({
+    email,
+    password,
+    nombre: firstName,
+    apellido: lastName,
+  });
+
+  console.log("Register response:", data);
+  if (data && data.token && data.userId) {
+    Cookies.set("token", data.token, { path: "/" });
+    Cookies.set("userId", data.userId, { path: "/" });
+  }
+  return data;
+}

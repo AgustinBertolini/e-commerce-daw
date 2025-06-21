@@ -1,71 +1,84 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Trash2 } from "lucide-react"
-import { getCart, updateCartItem, removeCartItem } from "@/lib/cart"
-import type { CartItem } from "@/types"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Trash2 } from "lucide-react";
+import { getCart, updateCartItem, removeCartItem } from "@/lib/cart";
+import type { CartItem } from "@/types";
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadCart = async () => {
       try {
-        const cart = await getCart()
-        setCartItems(cart)
+        const cart = await getCart();
+        setCartItems(cart);
       } catch (error) {
-        console.error("Error loading cart:", error)
+        console.error("Error loading cart:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadCart()
-  }, [])
+    loadCart();
+  }, []);
 
   const handleQuantityChange = async (itemId: string, quantity: number) => {
-    if (quantity < 1) return
+    if (quantity < 1) return;
 
     try {
-      await updateCartItem(itemId, quantity)
-      setCartItems(cartItems.map((item) => (item.id === itemId ? { ...item, quantity } : item)))
+      await updateCartItem(itemId, quantity);
+      setCartItems(
+        cartItems.map((item) =>
+          item.id === itemId ? { ...item, quantity } : item
+        )
+      );
     } catch (error) {
-      console.error("Error updating cart item:", error)
+      console.error("Error updating cart item:", error);
     }
-  }
+  };
 
   const handleRemoveItem = async (itemId: string) => {
     try {
-      await removeCartItem(itemId)
-      setCartItems(cartItems.filter((item) => item.id !== itemId))
+      await removeCartItem(itemId);
+      setCartItems(cartItems.filter((item) => item.id !== itemId));
     } catch (error) {
-      console.error("Error removing cart item:", error)
+      console.error("Error removing cart item:", error);
     }
-  }
+  };
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
-  }
+    return cartItems.reduce(
+      (total, item) => total + item.precio * item.quantity,
+      0
+    );
+  };
 
   if (loading) {
-    return <div className="container mx-auto py-12 text-center">Cargando carrito...</div>
+    return (
+      <div className="container mx-auto py-12 text-center">
+        Cargando carrito...
+      </div>
+    );
   }
 
   if (cartItems.length === 0) {
     return (
       <div className="container mx-auto py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Tu carrito está vacío</h1>
-        <p className="mb-6">¿No sabes qué comprar? ¡Miles de productos te esperan!</p>
+        <p className="mb-6">
+          ¿No sabes qué comprar? ¡Miles de productos te esperan!
+        </p>
         <Link href="/products">
           <Button>Ver productos</Button>
         </Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -81,7 +94,10 @@ export default function CartPage() {
 
             <div className="divide-y">
               {cartItems.map((item) => (
-                <div key={item.id} className="p-4 flex flex-col sm:flex-row items-center gap-4">
+                <div
+                  key={item.id}
+                  className="p-4 flex flex-col sm:flex-row items-center gap-4"
+                >
                   <div className="w-24 h-24 flex-shrink-0">
                     <Image
                       src={item.image || "/placeholder.svg?height=96&width=96"}
@@ -94,14 +110,18 @@ export default function CartPage() {
 
                   <div className="flex-grow">
                     <h3 className="font-medium">{item.name}</h3>
-                    <p className="text-gray-600 text-sm">${item.price.toFixed(2)} c/u</p>
+                    <p className="text-gray-600 text-sm">
+                      ${item.precio.toFixed(2)} c/u
+                    </p>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                      onClick={() =>
+                        handleQuantityChange(item.id, item.quantity - 1)
+                      }
                       disabled={item.quantity <= 1}
                     >
                       -
@@ -110,20 +130,29 @@ export default function CartPage() {
                       type="number"
                       min="1"
                       value={item.quantity}
-                      onChange={(e) => handleQuantityChange(item.id, Number.parseInt(e.target.value) || 1)}
+                      onChange={(e) =>
+                        handleQuantityChange(
+                          item.id,
+                          Number.parseInt(e.target.value) || 1
+                        )
+                      }
                       className="w-16 text-center"
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                      onClick={() =>
+                        handleQuantityChange(item.id, item.quantity + 1)
+                      }
                     >
                       +
                     </Button>
                   </div>
 
                   <div className="text-right min-w-[100px]">
-                    <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium">
+                      ${(item.precio * item.quantity).toFixed(2)}
+                    </p>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -172,5 +201,5 @@ export default function CartPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
