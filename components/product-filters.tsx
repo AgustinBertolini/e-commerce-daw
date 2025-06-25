@@ -171,7 +171,7 @@ export default function ProductFilters({
         <AccordionItem value="precio">
           <AccordionTrigger>Precio</AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-4">
+            <div className="space-y-4 mt-2">
               <Slider
                 defaultValue={[0, maxPrice]}
                 max={maxPrice}

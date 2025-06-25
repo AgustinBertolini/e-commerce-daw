@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import api from "@/lib/api";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // Defino el tipo para el producto según el payload del endpoint
 interface ProductApi {
@@ -124,6 +125,17 @@ export default function EditProductPage({
     });
   };
 
+  const formatCurrency = (value: string) => {
+    if (!value) return "";
+    const number = Number(value.replace(/[^\d]/g, ""));
+    if (isNaN(number)) return value;
+    return number.toLocaleString("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      maximumFractionDigits: 0,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -173,11 +185,7 @@ export default function EditProductPage({
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-12 text-center">
-        Cargando producto...
-      </div>
-    );
+    return <LoadingSpinner message="Cargando producto..." />;
   }
 
   if (!product) {
@@ -249,11 +257,14 @@ export default function EditProductPage({
               <Input
                 id="precio"
                 name="precio"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.precio}
-                onChange={handleInputChange}
+                type="text"
+                inputMode="numeric"
+                value={formatCurrency(formData.precio)}
+                onChange={(e) => {
+                  // Solo permitir números
+                  const raw = e.target.value.replace(/[^\d]/g, "");
+                  setFormData({ ...formData, precio: raw });
+                }}
                 required
               />
             </div>
@@ -309,6 +320,7 @@ export default function EditProductPage({
                 value={formData.descripcion}
                 onChange={handleInputChange}
                 rows={5}
+                maxLength={500}
                 required
               />
             </div>

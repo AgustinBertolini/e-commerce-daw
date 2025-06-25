@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Search, User, ChevronDown } from "lucide-react";
 import Cookies from "js-cookie";
 import { logoutUser } from "@/lib/auth";
+import { useCartStore } from "@/lib/cart-store";
 
 export default function Header() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function Header() {
   const [showHeader, setShowHeader] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const cartItems = useCartStore((state) => state.items);
+  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   useEffect(() => {
     // Chequear si la cookie 'token' existe y tiene valor
@@ -99,9 +102,14 @@ export default function Header() {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/cart">
-              <Button variant="ghost">
+              <Button variant="ghost" className="relative">
                 <ShoppingCart className="h-5 w-5 mr-1" />
                 Carrito
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Button>
             </Link>
             <div className="relative" ref={dropdownRef}>

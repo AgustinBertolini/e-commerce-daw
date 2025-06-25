@@ -5,13 +5,16 @@ import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product-card";
 import { getRecentProducts, getRandomProducts } from "@/lib/products";
 import { Product } from "@/types";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function Home() {
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
   const [randomProducts, setRandomProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       const recent = await getRecentProducts();
       const random = await getRandomProducts(10);
 
@@ -24,9 +27,14 @@ export default function Home() {
 
       setRecentProducts(recent.map(mapProductFields));
       setRandomProducts(random.map(mapProductFields));
+      setLoading(false);
     };
     fetchProducts();
   }, []);
+
+  if (loading) {
+    return <LoadingSpinner message="Cargando productos..." />;
+  }
 
   return (
     <main className="min-h-screen">

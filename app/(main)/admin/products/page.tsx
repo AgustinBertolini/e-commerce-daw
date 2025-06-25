@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Plus, Search } from "lucide-react";
 import api from "@/lib/api";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // Defino el tipo para el producto según el payload del endpoint
 interface ProductApi {
@@ -95,11 +96,7 @@ export default function AdminProductsPage() {
   );
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-12 text-center">
-        Cargando productos...
-      </div>
-    );
+    return <LoadingSpinner message="Cargando productos..." />;
   }
 
   return (
@@ -168,7 +165,7 @@ export default function AdminProductsPage() {
                         "N/A"}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${product.precio?.toFixed(2) ?? "N/A"}
+                      ${product.precio?.toLocaleString("es-AR") ?? "N/A"}
                     </TableCell>
                     <TableCell>{product.stock ?? "N/A"}</TableCell>
                     <TableCell>

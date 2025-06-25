@@ -8,48 +8,56 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getCart } from "@/lib/cart";
-import type { CartItem } from "@/types";
-import { processPayment } from "@/lib/payment";
+import { useCartStore } from "@/lib/cart-store";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cartItems = useCartStore((state) => state.items);
   const [paymentMethod, setPaymentMethod] = useState("mercadopago");
   const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    const loadCart = async () => {
-      try {
-        const cart = await getCart();
-        setCartItems(cart);
-      } catch (error) {
-        console.error("Error loading cart:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCart();
-  }, []);
+  const [shippingInfo, setShippingInfo] = useState({
+    firstName: "",
+    lastName: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    phone: "",
+  });
 
   const calculateTotal = () => {
     return cartItems.reduce(
-      (total, item) => total + item.precio * item.quantity,
+      (total, item) => total + item.product.precio * item.quantity,
       0
     );
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setShippingInfo((prev) => ({ ...prev, [id]: value }));
+  };
+
   const handlePayment = async () => {
+    // Validar datos de envío
+    if (
+      !shippingInfo.firstName.trim() ||
+      !shippingInfo.lastName.trim() ||
+      !shippingInfo.address.trim() ||
+      !shippingInfo.city.trim() ||
+      !shippingInfo.postalCode.trim() ||
+      !shippingInfo.phone.trim()
+    ) {
+      setError(
+        "Por favor completa todos los datos de envío antes de continuar."
+      );
+      return;
+    }
     try {
       setError("");
       setProcessingPayment(true);
-      const result = await processPayment(cartItems, paymentMethod);
-
-      // Redirigir a la página de confirmación de compra
-      router.push(`/checkout/success?orderId=${result.orderId}`);
+      setTimeout(() => {
+        router.push(`/checkout/success?orderId=demo`);
+      }, 1000);
     } catch (error) {
       console.error("Error processing payment:", error);
       setError(
@@ -59,12 +67,6 @@ export default function CheckoutPage() {
       setProcessingPayment(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto py-12 text-center">Cargando...</div>
-    );
-  }
 
   if (cartItems.length === 0) {
     return (
@@ -97,49 +99,59 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">Nombre</Label>
-                <Input id="firstName" placeholder="Tu nombre" />
+                <Input
+                  id="firstName"
+                  placeholder="Tu nombre"
+                  value={shippingInfo.firstName}
+                  onChange={handleInputChange}
+                />
               </div>
               <div>
                 <Label htmlFor="lastName">Apellido</Label>
-                <Input id="lastName" placeholder="Tu apellido" />
+                <Input
+                  id="lastName"
+                  placeholder="Tu apellido"
+                  value={shippingInfo.lastName}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="md:col-span-2">
                 <Label htmlFor="address">Dirección</Label>
-                <Input id="address" placeholder="Calle y número" />
+                <Input
+                  id="address"
+                  placeholder="Calle y número"
+                  value={shippingInfo.address}
+                  onChange={handleInputChange}
+                />
               </div>
               <div>
                 <Label htmlFor="city">Ciudad</Label>
-                <Input id="city" placeholder="Ciudad" />
+                <Input
+                  id="city"
+                  placeholder="Ciudad"
+                  value={shippingInfo.city}
+                  onChange={handleInputChange}
+                />
               </div>
               <div>
                 <Label htmlFor="postalCode">Código Postal</Label>
-                <Input id="postalCode" placeholder="Código postal" />
+                <Input
+                  id="postalCode"
+                  placeholder="Código postal"
+                  value={shippingInfo.postalCode}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="md:col-span-2">
                 <Label htmlFor="phone">Teléfono</Label>
-                <Input id="phone" placeholder="Tu número de teléfono" />
+                <Input
+                  id="phone"
+                  placeholder="Tu número de teléfono"
+                  value={shippingInfo.phone}
+                  onChange={handleInputChange}
+                />
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">Método de Pago</h2>
-
-            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-              <div className="flex items-center space-x-2 p-2 rounded border mb-2">
-                <RadioGroupItem value="mercadopago" id="mercadopago" />
-                <Label htmlFor="mercadopago" className="flex items-center">
-                  <Image
-                    src="/placeholder.svg?height=30&width=100"
-                    alt="MercadoPago"
-                    width={100}
-                    height={30}
-                    className="ml-2"
-                  />
-                  <span className="ml-2">MercadoPago</span>
-                </Label>
-              </div>
-            </RadioGroup>
           </div>
         </div>
 
@@ -150,27 +162,37 @@ export default function CheckoutPage() {
             <div className="max-h-60 overflow-y-auto mb-4">
               {cartItems.map((item) => (
                 <div
-                  key={item.id}
+                  key={item.product._id}
                   className="flex items-center gap-2 py-2 border-b"
                 >
                   <div className="w-12 h-12 flex-shrink-0">
                     <Image
-                      src={item.image || "/placeholder.svg?height=48&width=48"}
-                      alt={item.name}
+                      src={
+                        item.product.image ||
+                        "/placeholder.svg?height=48&width=48"
+                      }
+                      alt={
+                        item.product.nombre || item.product.name || "Producto"
+                      }
                       width={48}
                       height={48}
                       className="rounded object-cover w-full h-full"
                     />
                   </div>
                   <div className="flex-grow">
-                    <p className="text-sm font-medium">{item.name}</p>
+                    <p className="text-sm font-medium">
+                      {item.product.nombre || item.product.name}
+                    </p>
                     <p className="text-xs text-gray-500">
                       Cantidad: {item.quantity}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ${(item.precio * item.quantity).toFixed(2)}
+                      $
+                      {(item.product.precio * item.quantity).toLocaleString(
+                        "es-AR"
+                      )}
                     </p>
                   </div>
                 </div>

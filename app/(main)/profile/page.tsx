@@ -8,6 +8,7 @@ import api from "@/lib/api";
 import { updateUserProfile } from "@/lib/user";
 import type { UserProfile } from "@/types";
 import Pencil from "@/components/icons/Pencil";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // Extiendo la interfaz para que acepte los campos del backend
 interface UserApi {
@@ -103,11 +104,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-12 text-center">
-        Cargando perfil...
-      </div>
-    );
+    return <LoadingSpinner message="Cargando perfil..." />;
   }
 
   if (!user) {

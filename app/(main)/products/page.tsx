@@ -7,6 +7,7 @@ import ProductFilters, {
 } from "@/components/product-filters";
 import { getAllProducts } from "@/lib/products";
 import type { Product } from "@/types";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function ProductsPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -92,11 +93,7 @@ export default function ProductsPage() {
   ); // Solo se recrea cuando allProducts cambia
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-12 text-center">
-        Cargando productos...
-      </div>
-    );
+    return <LoadingSpinner message="Cargando productos..." />;
   }
 
   return (

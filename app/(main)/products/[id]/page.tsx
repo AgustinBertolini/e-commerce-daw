@@ -7,6 +7,7 @@ import { Heart } from "lucide-react";
 import { getProductById } from "@/lib/products";
 import { isFavorite, addFavorite, removeFavorite } from "@/lib/favorites";
 import AddToCartForm from "@/components/add-to-cart-form";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function ProductDetailPage({
   params,
@@ -56,11 +57,7 @@ export default function ProductDetailPage({
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-12 text-center">
-        Cargando producto...
-      </div>
-    );
+    return <LoadingSpinner message="Cargando producto..." />;
   }
 
   if (!product) {
@@ -85,25 +82,33 @@ export default function ProductDetailPage({
         </div>
 
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold">{product.name}</h1>
+          <h1 className="text-3xl font-bold">{product.nombre}</h1>
           <p className="text-2xl font-bold text-yellow-600">
-            ${product.precio.toFixed(2)}
+            ${product.precio.toLocaleString("es-AR")}
           </p>
 
-          <div className="border-t border-b py-4 my-4">
-            <p className="text-gray-700">{product.description}</p>
+          <div className="border-t border-b py-4 my-4 space-y-2">
+            <p className="text-gray-700">
+              <span className="font-semibold">Descripción:</span>{" "}
+              {product.descripcion}
+            </p>
+            <p>
+              <span className="font-semibold">Categoría:</span>{" "}
+              {typeof product.categoria === "object"
+                ? product.categoria.nombre
+                : product.categoria}
+            </p>
+            {product.genero && (
+              <p>
+                <span className="font-semibold">Género:</span>{" "}
+                {typeof product.genero === "object"
+                  ? product.genero.nombre
+                  : product.genero}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <p>
-              <span className="font-semibold">Categoría:</span>{" "}
-              {product.category}
-            </p>
-            {product.gender && (
-              <p>
-                <span className="font-semibold">Género:</span> {product.gender}
-              </p>
-            )}
             <p>
               <span className="font-semibold">Disponible:</span>{" "}
               {product.stock > 0 ? "En stock" : "Agotado"}

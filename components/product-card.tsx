@@ -11,8 +11,8 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import type { Product } from "@/types";
-import { addToCart } from "@/lib/cart";
 import { addFavorite, removeFavorite, isFavorite } from "@/lib/favorites";
+import { useCartStore } from "@/lib/cart-store";
 
 interface ProductCardProps {
   product: Product;
@@ -72,7 +72,7 @@ export default function ProductCard({
 
     try {
       setIsAddingToCart(true);
-      await addToCart(product._id, quantity);
+      useCartStore.getState().addToCart(product);
       setAddedToCart(true);
       setTimeout(() => {
         setAddedToCart(false);
@@ -127,7 +127,9 @@ export default function ProductCard({
           </h3>
         </Link>
         <p className="text-sm text-gray-500">{product.category.nombre}</p>
-        <p className="font-bold text-lg mt-1">${product.precio.toFixed(2)}</p>
+        <p className="font-bold text-lg mt-1">
+          ${product.precio.toLocaleString("es-AR")}
+        </p>
         {product.stock > 0 ? (
           <p className="text-sm text-gray-500">
             Stock disponible:{" "}

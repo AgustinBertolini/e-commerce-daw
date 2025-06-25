@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product-card";
 import { getFavorites, removeFavorite } from "@/lib/favorites";
 import type { Product } from "@/types";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<any[]>([]);
@@ -36,11 +37,7 @@ export default function FavoritesPage() {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-12 text-center">
-        Cargando favoritos...
-      </div>
-    );
+    return <LoadingSpinner message="Cargando favoritos..." />;
   }
 
   if (favorites.length === 0) {

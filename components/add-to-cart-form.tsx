@@ -74,7 +74,7 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
           variant="outline"
           size="icon"
           onClick={increaseQuantity}
-          disabled={product.stock <= 0}
+          disabled={product.stock <= 0 || quantity >= product.stock}
         >
           +
         </Button>
