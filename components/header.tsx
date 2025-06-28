@@ -22,9 +22,16 @@ export default function Header() {
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   useEffect(() => {
-    // Chequear si la cookie 'token' existe y tiene valor
-    const token = Cookies.get("token");
-    setShowHeader(!!token);
+    const checkToken = () => {
+      const token = Cookies.get("token");
+      setShowHeader(!!token);
+    };
+
+    checkToken();
+
+    const interval = setInterval(checkToken, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -49,7 +56,6 @@ export default function Header() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Search term:", searchTerm.trim());
     if (searchTerm.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
       setIsDropdownOpen(false);

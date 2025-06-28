@@ -71,7 +71,6 @@ export default function EditProductPage({
           api.categorias.getAll(),
           api.generos.getAll(),
         ]);
-        console.log("Product data:", productData);
         setProduct(productData);
         setCategorias(apiCategorias);
         setGeneros(apiGeneros);
@@ -88,7 +87,6 @@ export default function EditProductPage({
   useEffect(() => {
     // Inicializa el formData solo una vez cuando product esté disponible
     if (product && !formInitialized) {
-      console.log(product?.nombre);
       setFormData({
         nombre: product.nombre || "",
         descripcion: product.descripcion || "",

@@ -118,9 +118,7 @@ export default function LoginPage() {
         }
         return next;
       });
-      setError(
-        err.message || "Credenciales inválidas. Por favor intenta nuevamente."
-      );
+      setError("Credenciales inválidas. Por favor intenta nuevamente.");
       console.error(err);
     } finally {
       setLoading(false);

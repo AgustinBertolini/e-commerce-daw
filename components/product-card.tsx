@@ -103,7 +103,6 @@ export default function ProductCard({
       console.error("Error toggling favorite:", error);
     }
   };
-  console.log(product);
   return (
     <Card className="overflow-hidden">
       <Link href={`/products/${product._id}`}>

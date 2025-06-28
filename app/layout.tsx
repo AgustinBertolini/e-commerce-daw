@@ -20,6 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <link rel="icon" href="/mercado-clone-logo.jpg" type="image/jpeg" />
+      </head>
       <body className={`${inter.className} min-h-screen bg-gray-50`}>
         <ThemeProvider
           attribute="class"

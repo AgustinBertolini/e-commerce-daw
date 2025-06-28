@@ -58,7 +58,6 @@ export default function ProductFilters({
         }))
       );
       const gens = await api.generos.getAll();
-      console.log(gens);
       setGenders(
         gens.map((gen: any) => ({
           id: gen._id || gen.id,

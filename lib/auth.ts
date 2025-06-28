@@ -50,7 +50,6 @@ export async function registerUser(
     apellido: lastName,
   });
 
-  console.log("Register response:", data);
   if (data && data.token && data.userId) {
     Cookies.set("token", data.token, { path: "/" });
     Cookies.set("userId", data.userId, { path: "/" });

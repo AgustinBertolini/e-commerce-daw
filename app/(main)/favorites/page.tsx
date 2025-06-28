@@ -17,7 +17,6 @@ export default function FavoritesPage() {
       try {
         const favs = await getFavorites();
         setFavorites(favs);
-        console.log("Favorites loaded:", favs);
       } catch (error) {
         console.error("Error loading favorites:", error);
       } finally {
@@ -55,7 +54,6 @@ export default function FavoritesPage() {
       </div>
     );
   }
-  console.log("Rendering favorites:", favorites[0]);
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Mis Favoritos</h1>
