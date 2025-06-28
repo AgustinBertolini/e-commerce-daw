@@ -126,7 +126,7 @@ export default function ProductCard({
       <CardContent className="p-4 mt-4">
         <Link href={`/products/${product._id}`}>
           <h3 className="font-medium line-clamp-1 hover:text-yellow-600">
-            {product.name}
+            {product.nombre || product.name}
           </h3>
         </Link>
         <p className="text-sm text-gray-500">
