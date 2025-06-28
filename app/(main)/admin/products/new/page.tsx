@@ -111,7 +111,7 @@ export default function NewProductPage() {
         precio,
         stock,
         categoria: formData.category,
-        genero: formData.gender,
+        genero: formData.gender || null,
         imagen: formData.image,
       };
       await createProduct(productData);

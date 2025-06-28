@@ -171,6 +171,7 @@ export default function EditProductPage({
         ...formData,
         precio,
         stock,
+        genero: formData.genero || null,
       };
       await api.productos.update(id, productData);
       router.push("/admin/products");

@@ -5,7 +5,11 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { getProductById } from "@/lib/products";
-import { isFavorite, addFavorite, removeFavorite } from "@/lib/favorites";
+import {
+  isFavorite,
+  addFavorite,
+  removeFavoriteByProduct,
+} from "@/lib/favorites";
 import AddToCartForm from "@/components/add-to-cart-form";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
@@ -45,7 +49,7 @@ export default function ProductDetailPage({
 
     try {
       if (isFav) {
-        await removeFavorite(product._id);
+        await removeFavoriteByProduct(product._id);
         setIsFav(false);
       } else {
         await addFavorite(product._id);

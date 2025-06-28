@@ -39,14 +39,35 @@ export interface PurchaseItem {
   image?: string;
 }
 
+// Tipos adaptados a la respuesta real del backend
+export interface PurchaseProduct {
+  _id: string;
+  producto: {
+    _id: string;
+    nombre: string;
+    precio: number;
+    image?: string;
+    // ...otros campos relevantes
+  };
+  cantidad: number;
+}
+
 export interface Purchase {
-  id: string;
-  date: string;
-  status: "processing" | "shipped" | "completed" | "cancelled";
-  items: PurchaseItem[];
-  subtotal: number;
-  shipping: number;
+  _id: string;
+  usuario: {
+    _id: string;
+    nombre: string;
+    apellido: string;
+    email: string;
+    // ...otros campos relevantes
+  };
   total: number;
+  envio: number;
+  estado: string;
+  productos: PurchaseProduct[];
+  fechaCreacion: string;
+  fechaActualizacion: string;
+  // ...otros campos si es necesario
 }
 
 export interface Address {

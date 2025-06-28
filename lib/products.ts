@@ -73,14 +73,19 @@ export async function searchProducts(query: string): Promise<Product[]> {
   const normalizedQuery = query.toLowerCase().trim();
 
   const allProducts = await api.productos.getAll();
-
+  console.log("All products:", allProducts);
+  console.log("normalizedQuery", normalizedQuery);
   const results = allProducts.filter((product: Product) => {
     return (
-      product.name.toLowerCase().includes(normalizedQuery) ||
-      product.description.toLowerCase().includes(normalizedQuery)
+      (product.nombre || product.name)
+        .toLowerCase()
+        .includes(normalizedQuery) ||
+      (product.descripcion || product.description)
+        .toLowerCase()
+        .includes(normalizedQuery)
     );
   });
-
+  console.log("Search results:", results);
   return Promise.resolve(results);
 }
 

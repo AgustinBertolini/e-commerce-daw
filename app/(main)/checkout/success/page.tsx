@@ -5,21 +5,35 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
-import { useCartStore } from "@/lib/cart-store";
+import api from "@/lib/api";
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const cartItems = useCartStore((state) => state.items);
+  const [purchase, setPurchase] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // No loading ni purchase, solo mockup con el store
-  if (cartItems.length === 0) {
+  useEffect(() => {
+    if (!orderId) return;
+    const fetchPurchase = async () => {
+      try {
+        const compra = await api.compras.getById(orderId);
+
+        setPurchase(compra);
+      } catch (error) {
+        setPurchase(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPurchase();
+  }, [orderId]);
+
+  if (!orderId) {
     return (
       <div className="container mx-auto py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">
-          No hay productos en tu compra
-        </h1>
+        <h1 className="text-2xl font-bold mb-4">No se encontró la orden</h1>
         <Link href="/products">
           <Button>Ver productos</Button>
         </Link>
@@ -27,12 +41,37 @@ export default function CheckoutSuccessPage() {
     );
   }
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.product.precio * item.quantity,
+  if (loading) {
+    return (
+      <div className="container mx-auto py-12 text-center">
+        <h1 className="text-2xl font-bold mb-4">Cargando compra...</h1>
+      </div>
+    );
+  }
+
+  if (!purchase) {
+    return (
+      <div className="container mx-auto py-12 text-center">
+        <h1 className="text-2xl font-bold mb-4">No se encontró la compra</h1>
+        <Link href="/products">
+          <Button>Ver productos</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  // Adaptar a la estructura real del backend
+  const productos = purchase.productos || [];
+  const subtotal = productos.reduce(
+    (sum: number, item: any) =>
+      sum + (item.producto?.precio ?? 0) * (item.cantidad ?? 1),
     0
   );
-  const total = subtotal; // Envío gratis
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const total = purchase.total ?? subtotal;
+  const totalItems = productos.reduce(
+    (sum: number, item: any) => sum + (item.cantidad ?? 1),
+    0
+  );
 
   return (
     <div className="container mx-auto py-12 max-w-2xl">
@@ -48,20 +87,28 @@ export default function CheckoutSuccessPage() {
 
         <div className="bg-gray-50 p-4 rounded-md mb-6">
           <p className="font-medium">
-            Número de orden: <span className="text-yellow-600">demo</span>
+            Número de orden:{" "}
+            <span className="text-yellow-600">
+              {purchase.id || purchase._id || orderId}
+            </span>
           </p>
           <p className="text-sm text-gray-600">
             Fecha:{" "}
-            {new Date().toLocaleDateString("es-ES", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {purchase.fechaCreacion
+              ? new Date(purchase.fechaCreacion).toLocaleDateString("es-ES", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "-"}
           </p>
           <p className="text-sm text-gray-600 mt-1">
-            Estado: <span className="font-medium">En procesamiento</span>
+            Estado:{" "}
+            <span className="font-medium">
+              {purchase.status || "En procesamiento"}
+            </span>
           </p>
         </div>
 
@@ -74,7 +121,11 @@ export default function CheckoutSuccessPage() {
             </div>
             <div className="flex justify-between py-2">
               <span>Envío</span>
-              <span>Gratis</span>
+              <span>
+                {purchase.shipping === 0
+                  ? "Gratis"
+                  : `${purchase.shipping?.toLocaleString("es-AR") ?? "-"}`}
+              </span>
             </div>
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
               <span>Total</span>
@@ -83,19 +134,29 @@ export default function CheckoutSuccessPage() {
           </div>
           <div className="mt-4">
             <ul className="divide-y">
-              {cartItems.map((item) => (
+              {purchase.items?.map((item: any) => (
                 <li
-                  key={item.product._id}
+                  key={item.productId || item.producto || item.id}
                   className="flex items-center justify-between py-2"
                 >
                   <span>
-                    {item.product.nombre || item.product.name} x {item.quantity}
+                    {(item.name ||
+                      item.nombre ||
+                      (item.product &&
+                        (item.product.name || item.product.nombre)) ||
+                      "Producto") +
+                      " x " +
+                      (item.quantity ?? item.cantidad ?? 1)}
                   </span>
                   <span>
                     $
-                    {(item.product.precio * item.quantity).toLocaleString(
-                      "es-AR"
-                    )}
+                    {(
+                      (item.price ??
+                        item.precio ??
+                        ((item.product &&
+                          (item.product.price ?? item.product.precio)) ||
+                          0)) * (item.quantity ?? item.cantidad ?? 1)
+                    ).toLocaleString("es-AR")}
                   </span>
                 </li>
               ))}

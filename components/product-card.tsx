@@ -11,7 +11,11 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import type { Product } from "@/types";
-import { addFavorite, removeFavorite, isFavorite } from "@/lib/favorites";
+import {
+  addFavorite,
+  removeFavoriteByProduct,
+  isFavorite,
+} from "@/lib/favorites";
 import { useCartStore } from "@/lib/cart-store";
 
 interface ProductCardProps {
@@ -72,7 +76,7 @@ export default function ProductCard({
 
     try {
       setIsAddingToCart(true);
-      useCartStore.getState().addToCart(product);
+      useCartStore.getState().addToCart(product, quantity); // Pasar la cantidad seleccionada
       setAddedToCart(true);
       setTimeout(() => {
         setAddedToCart(false);
@@ -88,7 +92,7 @@ export default function ProductCard({
   const handleToggleFavorite = async () => {
     try {
       if (isFav) {
-        await removeFavorite(product._id);
+        await removeFavoriteByProduct(product._id);
         setIsFav(false);
         if (onRemoveFavorite) onRemoveFavorite();
       } else {
@@ -99,14 +103,14 @@ export default function ProductCard({
       console.error("Error toggling favorite:", error);
     }
   };
-
+  console.log(product);
   return (
     <Card className="overflow-hidden">
       <Link href={`/products/${product._id}`}>
         <div className="relative aspect-square  overflow-hidden">
           <Image
             src={product.image || "/placeholder.svg?height=300&width=300"}
-            alt={product.name}
+            alt={product.nombre || product.name}
             fill
             className="object-fit transition-transform hover:scale-125"
           />
@@ -126,7 +130,9 @@ export default function ProductCard({
             {product.name}
           </h3>
         </Link>
-        <p className="text-sm text-gray-500">{product.category.nombre}</p>
+        <p className="text-sm text-gray-500">
+          {product.categoria?.nombre || product.category?.nombre}
+        </p>
         <p className="font-bold text-lg mt-1">
           ${product.precio.toLocaleString("es-AR")}
         </p>
@@ -194,7 +200,7 @@ export default function ProductCard({
             </div>
           </div>
         ) : (
-          <div className="flex w-full gap-2">
+          <div className="flex w-full gap-2 items-center">
             <Button
               className="flex-1"
               size="sm"
@@ -205,17 +211,17 @@ export default function ProductCard({
               Agregar
             </Button>
             <Button
-              variant={isFav ? "destructive" : "ghost"}
+              variant={"ghost"}
               aria-label={isFav ? "Quitar de favoritos" : "Agregar a favoritos"}
               onClick={handleToggleFavorite}
               disabled={isFav === undefined}
-              className="absolute top-2 right-2 z-10"
+              size="icon"
+              className="ml-2"
             >
               <Heart
-                className={
-                  isFav ? "fill-red-500 text-red-500" : "text-gray-400"
-                }
+                className={isFav ? "text-red-500" : "text-gray-400"}
                 fill={isFav ? "#ef4444" : "none"}
+                stroke={isFav ? "#ef4444" : "currentColor"}
               />
             </Button>
           </div>

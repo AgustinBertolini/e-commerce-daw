@@ -52,6 +52,9 @@ const api = {
   },
   productos: {
     getAll: () => apiAxios.get("/api/productos").then((r) => r.data),
+    getAllMine: () =>
+      apiAxios.get("/api/productos?mine=true").then((r) => r.data),
+
     getById: (id: string) =>
       apiAxios.get(`/api/productos/${id}`).then((r) => r.data),
     create: (data: any) =>

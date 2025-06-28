@@ -49,9 +49,12 @@ export default function Header() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Search term:", searchTerm.trim());
     if (searchTerm.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
       setIsDropdownOpen(false);
+    } else {
+      router.push(`/products`);
     }
   };
 

@@ -55,7 +55,7 @@ export default function FavoritesPage() {
       </div>
     );
   }
-
+  console.log("Rendering favorites:", favorites[0]);
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Mis Favoritos</h1>
@@ -64,11 +64,11 @@ export default function FavoritesPage() {
           No tienes productos favoritos.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {favorites.map((fav) => (
             <div
               key={fav._id}
-              className="bg-white rounded-lg shadow p-4 flex flex-col"
+              className="bg-white rounded-xl shadow-lg p-4 flex flex-col hover:shadow-2xl transition-shadow duration-200 border border-gray-100 relative group"
             >
               <ProductCard
                 product={{
@@ -79,26 +79,48 @@ export default function FavoritesPage() {
                   stock: fav.producto.stock,
                   category: fav.producto.categoria,
                   gender: fav.producto.genero,
-                  image: fav.producto.imagen,
+                  image: fav.producto?.image || fav.producto?.imagen,
                   userId: fav.producto.usuario,
                   createdAt: fav.producto.fechaCreacion,
                 }}
                 isFavorite={true}
                 onRemoveFavorite={() => handleRemoveFavorite(fav._id)}
               />
-              <div className="mt-2 text-xs text-gray-500">
-                Agregado:{" "}
-                {fav.fechaCreacion
-                  ? new Date(fav.fechaCreacion).toLocaleDateString()
-                  : "-"}
+              <div className="flex items-center justify-between mt-3 text-xs text-gray-500 px-1">
+                <span>
+                  Agregado:{" "}
+                  {fav.fechaCreacion
+                    ? new Date(fav.fechaCreacion).toLocaleDateString("es-AR", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "-"}
+                </span>
+                <Button
+                  onClick={() => handleRemoveFavorite(fav._id)}
+                  variant="ghost"
+                  size="icon"
+                  className="opacity-70 hover:opacity-100 transition-opacity"
+                  aria-label="Eliminar de favoritos"
+                >
+                  <span className="sr-only">Eliminar</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5 text-red-500"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </Button>
               </div>
-              <Button
-                onClick={() => handleRemoveFavorite(fav._id)}
-                variant="destructive"
-                className="mt-2"
-              >
-                Eliminar
-              </Button>
             </div>
           ))}
         </div>

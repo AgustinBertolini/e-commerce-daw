@@ -6,9 +6,10 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCartStore } from "@/lib/cart-store";
+import api from "@/lib/api";
+import { getCurrentUserId } from "@/lib/auth";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -55,9 +56,33 @@ export default function CheckoutPage() {
     try {
       setError("");
       setProcessingPayment(true);
-      setTimeout(() => {
-        router.push(`/checkout/success?orderId=demo`);
-      }, 1000);
+      // Obtener usuario actual
+      const userId = getCurrentUserId();
+      if (!userId) {
+        setError(
+          "No se pudo identificar el usuario. Iniciá sesión nuevamente."
+        );
+        setProcessingPayment(false);
+        return;
+      }
+      // Calcular total y envío (envío fijo 0 para mockup)
+      const total = calculateTotal();
+      const envio = 0;
+      // Crear compra en el backend
+      const compra = await api.compras.create({
+        usuario: userId,
+        total,
+        envio,
+        productos: cartItems.map((item) => ({
+          producto: item.product._id, // debe ser el ObjectId del producto
+          cantidad: item.quantity,
+        })),
+        // estado, fechaCreacion y fechaActualizacion los setea el backend
+      });
+      // Vaciar el carrito si la compra fue exitosa
+      useCartStore.getState().clearCart();
+      // Redirigir a la pantalla de éxito con el id de la compra
+      router.push(`/checkout/success?orderId=${compra._id}`);
     } catch (error) {
       console.error("Error processing payment:", error);
       setError(

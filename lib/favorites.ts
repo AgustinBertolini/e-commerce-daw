@@ -25,3 +25,10 @@ export async function isFavorite(productId: string) {
 
   return favoritos.some((fav: any) => fav.producto._id === productId);
 }
+
+export async function removeFavoriteByProduct(productId: string) {
+  const favoritos = await getFavorites();
+  const fav = favoritos.find((f: any) => f.producto._id === productId);
+  if (!fav) throw new Error("Favorito no encontrado");
+  return removeFavorite(fav._id);
+}

@@ -58,7 +58,7 @@ export default function AdminProductsPage() {
     const loadProducts = async () => {
       try {
         const [apiProducts, apiCategorias, apiGeneros] = await Promise.all([
-          api.productos.getAll(),
+          api.productos.getAllMine(),
           api.categorias.getAll(),
           api.generos.getAll(),
         ]);
