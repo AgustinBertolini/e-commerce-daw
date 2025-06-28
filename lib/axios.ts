@@ -2,8 +2,10 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { refreshToken, logoutUser } from "./auth";
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 const apiAxios = axios.create({
-  baseURL: "http://localhost:3000/dev",
+  baseURL: BASE_URL,
   withCredentials: true,
 });
 

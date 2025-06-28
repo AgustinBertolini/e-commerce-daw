@@ -3,8 +3,6 @@
 
 import apiAxios from "./axios";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/dev";
-
 const api = {
   categorias: {
     getAll: () => apiAxios.get("/api/categorias").then((r) => r.data),

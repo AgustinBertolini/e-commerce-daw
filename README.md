@@ -38,6 +38,7 @@ Este proyecto es una aplicación de e-commerce desarrollada con Next.js, TypeScr
    Crea un archivo `.env.local` en la raíz y agrega las variables necesarias (por ejemplo, claves de API, URLs de backend, etc).
 
 4. **Ejecuta el proyecto en desarrollo:**
+
    ```bash
    pnpm dev
    ```
