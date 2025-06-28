@@ -68,7 +68,7 @@ export default function RegisterPage() {
     <div className="w-full max-w-md space-y-8 p-8">
       <div className="text-center">
         <Image
-          src="/placeholder.svg?height=80&width=200"
+          src="/mercado-clone-logo.jpg"
           alt="Logo"
           width={200}
           height={80}
