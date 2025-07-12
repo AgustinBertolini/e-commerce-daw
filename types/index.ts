@@ -18,8 +18,10 @@ export interface Product {
     fechaActualizacion: string;
   };
   image?: string;
+  imagenBase64?: string;
   userId: string;
   createdAt: string;
+  fechaCreacion: Date;
 }
 
 export interface CartItem {

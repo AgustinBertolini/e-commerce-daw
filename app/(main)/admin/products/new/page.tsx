@@ -29,6 +29,7 @@ export default function NewProductPage() {
     category: "",
     gender: "",
     image: "",
+    imagenBase64: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -84,7 +85,8 @@ export default function NewProductPage() {
       !formData.description ||
       !formData.precio ||
       !formData.stock ||
-      !formData.category
+      !formData.category ||
+      !formData.imagenBase64
     ) {
       setError("Por favor completa todos los campos obligatorios");
       return;
@@ -112,7 +114,7 @@ export default function NewProductPage() {
         stock,
         categoria: formData.category,
         genero: formData.gender || null,
-        imagen: formData.image,
+        imagenBase64: formData.imagenBase64,
       };
       await createProduct(productData);
       router.push("/admin/products");
@@ -214,14 +216,40 @@ export default function NewProductPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">URL de la Imagen</Label>
-              <Input
-                id="image"
-                name="image"
-                value={formData.image}
-                onChange={handleInputChange}
-                placeholder="https://ejemplo.com/imagen.jpg"
-              />
+              <Label htmlFor="image">Imagen *</Label>
+              <div className="flex items-center gap-2">
+                {formData.imagenBase64 && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={formData.imagenBase64}
+                      alt="Previsualización"
+                      className="max-h-32 w-auto rounded shadow"
+                      style={{ maxWidth: 120 }}
+                    />
+                  </div>
+                )}
+                <Input
+                  id="image"
+                  name="image"
+                  type="file"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          imagenBase64: reader.result as string,
+                        }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  required
+                  className="flex-1"
+                />
+              </div>
             </div>
 
             <div className="space-y-2 md:col-span-2">

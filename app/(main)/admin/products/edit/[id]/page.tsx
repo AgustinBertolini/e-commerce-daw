@@ -34,6 +34,7 @@ interface ProductApi {
   stock: number;
   fechaActualizacion: string;
   image?: string;
+  imagenBase64?: string;
 }
 
 export default function EditProductPage({
@@ -56,6 +57,7 @@ export default function EditProductPage({
     categoria: "",
     genero: "",
     image: "",
+    imagenBase64: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -100,7 +102,8 @@ export default function EditProductPage({
           product.genero && typeof product.genero === "object"
             ? product.genero._id
             : product.genero || "",
-        image: product.image || "",
+        image: product.imagenBase64 || "",
+        imagenBase64: product.imagenBase64 || "",
       });
       setFormInitialized(true);
     }
@@ -144,7 +147,8 @@ export default function EditProductPage({
       !formData.descripcion ||
       !formData.precio ||
       !formData.stock ||
-      !formData.categoria
+      !formData.categoria ||
+      !formData.imagenBase64
     ) {
       setError("Por favor completa todos los campos obligatorios");
       return;
@@ -170,6 +174,7 @@ export default function EditProductPage({
         precio,
         stock,
         genero: formData.genero || null,
+        imagenBase64: formData.imagenBase64,
       };
       await api.productos.update(id, productData);
       router.push("/admin/products");
@@ -301,14 +306,40 @@ export default function EditProductPage({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">URL de la Imagen</Label>
-              <Input
-                id="image"
-                name="image"
-                value={formData.image}
-                onChange={handleInputChange}
-                placeholder="https://ejemplo.com/imagen.jpg"
-              />
+              <Label htmlFor="image">Imagen *</Label>
+              <div className="flex items-center gap-2">
+                {formData.imagenBase64 && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={formData.imagenBase64}
+                      alt="Previsualización"
+                      className="max-h-32 w-auto rounded shadow"
+                      style={{ maxWidth: 120 }}
+                    />
+                  </div>
+                )}
+                <Input
+                  id="image"
+                  name="image"
+                  type="file"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          imagenBase64: reader.result as string,
+                        }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="flex-1"
+                  required={!formData.imagenBase64}
+                />
+              </div>
             </div>
 
             <div className="space-y-2 md:col-span-2">

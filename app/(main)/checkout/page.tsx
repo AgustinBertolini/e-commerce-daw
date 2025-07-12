@@ -193,7 +193,7 @@ export default function CheckoutPage() {
                   <div className="w-12 h-12 flex-shrink-0">
                     <Image
                       src={
-                        item.product.image ||
+                        item.product.imagenBase64 ||
                         "/placeholder.svg?height=48&width=48"
                       }
                       alt={

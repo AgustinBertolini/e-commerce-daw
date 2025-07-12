@@ -35,7 +35,7 @@ interface ProductApi {
   precio: number;
   stock: number;
   fechaActualizacion: string;
-  image?: string;
+  imagenBase64: string;
 }
 
 interface CategoriaApi {
@@ -98,7 +98,7 @@ export default function AdminProductsPage() {
   if (loading) {
     return <LoadingSpinner message="Cargando productos..." />;
   }
-
+  console.log(products);
   return (
     <div className="container mx-auto py-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -145,7 +145,8 @@ export default function AdminProductsPage() {
                     <TableCell>
                       <Image
                         src={
-                          product.image || "/placeholder.svg?height=40&width=40"
+                          product.imagenBase64 ||
+                          "/placeholder.svg?height=40&width=40"
                         }
                         alt={product.nombre || "N/A"}
                         width={40}
@@ -157,12 +158,12 @@ export default function AdminProductsPage() {
                       {product.nombre || "N/A"}
                     </TableCell>
                     <TableCell>
-                      {categorias.find((c) => c._id === product.categoria)
+                      {categorias.find((c) => c._id === product.categoria._id)
                         ?.nombre || "N/A"}
                     </TableCell>
                     <TableCell>
-                      {generos.find((g) => g._id === product.genero)?.nombre ||
-                        "N/A"}
+                      {generos.find((g) => g._id === product.genero._id)
+                        ?.nombre || "N/A"}
                     </TableCell>
                     <TableCell className="text-right">
                       ${product.precio?.toLocaleString("es-AR") ?? "N/A"}

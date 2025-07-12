@@ -108,7 +108,9 @@ export default function ProductCard({
       <Link href={`/products/${product._id}`}>
         <div className="relative aspect-square  overflow-hidden">
           <Image
-            src={product.image || "/placeholder.svg?height=300&width=300"}
+            src={
+              product.imagenBase64 || "/placeholder.svg?height=300&width=300"
+            }
             alt={product.nombre || product.name}
             fill
             className="object-fit transition-transform hover:scale-125"

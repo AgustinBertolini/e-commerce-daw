@@ -16,6 +16,11 @@ export default function FavoritesPage() {
     const loadFavorites = async () => {
       try {
         const favs = await getFavorites();
+        favs.sort((a, b) => {
+          const dateA = new Date(a.fechaCreacion).getTime();
+          const dateB = new Date(b.fechaCreacion).getTime();
+          return dateB - dateA;
+        });
         setFavorites(favs);
       } catch (error) {
         console.error("Error loading favorites:", error);
@@ -77,7 +82,7 @@ export default function FavoritesPage() {
                   stock: fav.producto.stock,
                   category: fav.producto.categoria,
                   gender: fav.producto.genero,
-                  image: fav.producto?.image || fav.producto?.imagen,
+                  imagenBase64: fav.producto?.imagenBase64,
                   userId: fav.producto.usuario,
                   createdAt: fav.producto.fechaCreacion,
                 }}

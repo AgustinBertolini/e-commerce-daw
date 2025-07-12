@@ -77,7 +77,9 @@ export default function ProductDetailPage({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="flex justify-center">
           <Image
-            src={product.image || "/placeholder.svg?height=400&width=400"}
+            src={
+              product.imagenBase64 || "/placeholder.svg?height=400&width=400"
+            }
             alt={product.name}
             width={400}
             height={400}

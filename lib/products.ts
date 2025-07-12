@@ -14,7 +14,8 @@ export async function getRecentProducts(limit = 4): Promise<Product[]> {
   const recent = allProducts
     .sort(
       (a: Product, b: Product) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.fechaCreacion).getTime() -
+        new Date(a.fechaCreacion).getTime()
     )
     .slice(0, limit);
 
@@ -27,7 +28,8 @@ export async function getRandomProducts(limit = 10): Promise<Product[]> {
   const recent = allProducts
     .sort(
       (a: Product, b: Product) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.fechaCreacion).getTime() -
+        new Date(a.fechaCreacion).getTime()
     )
     .slice(0, limit);
 

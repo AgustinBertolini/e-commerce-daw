@@ -102,6 +102,12 @@ export default function PurchasesPage() {
                   <p className="font-medium">
                     {formatDate(purchase.fechaCreacion || purchase.date)}
                   </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    N° de orden:{" "}
+                    <span className="font-mono">
+                      {purchase._id || purchase.id}
+                    </span>
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(purchase.estado || purchase.status)}
@@ -131,7 +137,7 @@ export default function PurchasesPage() {
                               <div className="w-16 h-16 flex-shrink-0">
                                 <Image
                                   src={
-                                    item.producto?.image ||
+                                    item.producto?.imagenBase64 ||
                                     "/placeholder.svg?height=64&width=64"
                                   }
                                   alt={item.producto?.nombre || "Producto"}

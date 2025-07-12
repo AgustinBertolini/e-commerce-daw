@@ -40,7 +40,10 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
 
     try {
       setLoading(true);
-      await addToCart(product._id, quantity);
+      if (typeof window !== "undefined") {
+        const { useCartStore } = require("@/lib/cart-store");
+        useCartStore.getState().addToCart(product, quantity);
+      }
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
