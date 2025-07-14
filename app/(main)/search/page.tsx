@@ -115,7 +115,7 @@ export default function SearchPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 bg-white rounded-lg shadow-md">
+            <div className="text-center py-12 bg-gray-100 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold mb-2">
                 No se encontraron productos
               </h2>

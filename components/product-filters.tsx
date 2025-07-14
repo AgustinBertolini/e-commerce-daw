@@ -184,8 +184,8 @@ export default function ProductFilters({
                 }
               />
               <div className="flex items-center justify-between">
-                <span>${filters.priceRange[0]}</span>
-                <span>${filters.priceRange[1]}</span>
+                <span>{Number.isFinite(filters.priceRange[0]) && filters.priceRange[0] >= 0 ? `$${filters.priceRange[0]}` : "$0"}</span>
+                <span>{Number.isFinite(filters.priceRange[1]) && filters.priceRange[1] >= 0 ? `$${filters.priceRange[1]}` : "$0"}</span>
               </div>
             </div>
           </AccordionContent>

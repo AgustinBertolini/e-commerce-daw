@@ -57,7 +57,8 @@ export default function CartPage() {
               {cartItems.map((item) => (
                 <div
                   key={item.product._id}
-                  className="p-4 flex flex-col sm:flex-row items-center gap-4"
+                  className="p-4 flex flex-col sm:flex-row items-center gap-4 bg-gray-100 hover:bg-gray-200 transition-colors duration-150"
+                  style={{ borderRadius: 10 }}
                 >
                   <div className="w-24 h-24 flex-shrink-0">
                     <Image
