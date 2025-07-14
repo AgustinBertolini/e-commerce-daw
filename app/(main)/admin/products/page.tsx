@@ -86,19 +86,23 @@ export default function AdminProductsPage() {
   };
 
   const filteredProducts = products.filter(
-    (product) =>
-      (product.nombre?.toLowerCase() || "").includes(
-        searchTerm.toLowerCase()
-      ) ||
-      (product.categoria?.toLowerCase() || "").includes(
-        searchTerm.toLowerCase()
-      )
+    (product) => {
+      const term = searchTerm.toLowerCase();
+      const nombre = (product.nombre || "").toLowerCase();
+      const categoria = (product.categoria?.nombre || product.category?.nombre || "").toLowerCase();
+      const genero = (product.genero?.nombre || product.gender?.nombre || "").toLowerCase();
+      return (
+        nombre.includes(term) ||
+        categoria.includes(term) ||
+        genero.includes(term)
+      );
+    }
   );
 
   if (loading) {
     return <LoadingSpinner message="Cargando productos..." />;
   }
-  console.log(products);
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
