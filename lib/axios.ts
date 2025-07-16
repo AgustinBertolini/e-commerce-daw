@@ -23,6 +23,7 @@ apiAxios.interceptors.response.use(
   (response: any) => response,
   async (error: any) => {
     const originalRequest = error.config;
+    // Si el error es 401 y no es el endpoint de refresh-token y no se ha reintentado
     if (
       error.response &&
       error.response.status === 401 &&
@@ -30,11 +31,20 @@ apiAxios.interceptors.response.use(
       !originalRequest.url.includes("/api/refresh-token")
     ) {
       originalRequest._retry = true;
-      const newToken = await refreshToken();
-      if (newToken) {
-        originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-        return apiAxios(originalRequest);
-      } else {
+      try {
+        const newToken = await refreshToken();
+        if (newToken) {
+          // Actualiza el token en las cookies
+          Cookies.set("token", newToken);
+          // Actualiza el header Authorization
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+          // Reintenta la request original
+          return apiAxios(originalRequest);
+        } else {
+          await logoutUser();
+        }
+      } catch (e) {
         await logoutUser();
       }
     }
