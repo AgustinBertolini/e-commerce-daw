@@ -32,17 +32,22 @@ apiAxios.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        const newToken = await refreshToken();
+        let newToken = null;
+        try {
+          newToken = await refreshToken();
+        } catch (e) {
+          // Si refreshToken lanza error, forzar logout
+          await logoutUser();
+          return Promise.reject(error);
+        }
         if (newToken) {
-          // Actualiza el token en las cookies
           Cookies.set("token", newToken);
-          // Actualiza el header Authorization
           originalRequest.headers = originalRequest.headers || {};
           originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-          // Reintenta la request original
           return apiAxios(originalRequest);
         } else {
           await logoutUser();
+          return Promise.reject(error);
         }
       } catch (e) {
         await logoutUser();
