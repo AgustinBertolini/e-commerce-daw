@@ -54,6 +54,7 @@ export default function ProductCard({
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(e.target.value);
+     if (value > product.stock) return;
     if (!isNaN(value) && value >= 1 && value <= product.stock) {
       setQuantity(value);
     }

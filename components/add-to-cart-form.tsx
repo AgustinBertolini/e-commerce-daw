@@ -20,6 +20,7 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(e.target.value);
+     if (value > product.stock) return;
     if (!isNaN(value) && value > 0) {
       setQuantity(value);
     }
