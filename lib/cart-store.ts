@@ -22,11 +22,18 @@ export const useCartStore = create<CartState>((set, get) => ({
       const existing = state.items.find(
         (item) => item.product._id === product._id
       );
+      const currentQty = existing ? existing.quantity : 0;
+      const newQty = currentQty + quantity;
+      // No permitir agregar más que el stock disponible
+      if (newQty > product.stock) {
+        // Opcional: podrías mostrar un toast aquí
+        return { items: state.items };
+      }
       if (existing) {
         return {
           items: state.items.map((item) =>
             item.product._id === product._id
-              ? { ...item, quantity: item.quantity + quantity }
+              ? { ...item, quantity: newQty }
               : item
           ),
         };
